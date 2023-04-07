@@ -1,0 +1,67 @@
+
+
+CREATE COMPUTE MODULE MMDemo_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		 CALL CopyMessageHeaders();
+		-- CALL CopyEntireMessage();
+		
+		--SET OutputRoot.XMLNSC.Organsation=InputRoot.DFDL.Employee;
+		
+		CREATE FIELD OutputRoot.XMLNSC.Organisation;
+		DECLARE outref REFERENCE TO OutputRoot.XMLNSC.Organisation;
+		
+		CREATE FIELD OutputRoot.XMLNSC.Organisation.Header;
+		DECLARE outrefheader REFERENCE TO OutputRoot.XMLNSC.Organisation.Header;
+		
+		CREATE FIELD OutputRoot.XMLNSC.Organisation.Body;
+		DECLARE outrefbody REFERENCE TO OutputRoot.XMLNSC.Organisation.Body;
+		
+		
+		
+		SET outrefheader.CompanyName			=InputRoot.DFDL.Employee.header.CompanyName;
+		SET outrefheader.EmpCount				=InputRoot.DFDL.Employee.header.EmpCount;
+		SET outrefheader.Address				=InputRoot.DFDL.Employee.header.Address;
+		SET outrefheader.City					=InputRoot.DFDL.Employee.header.City;
+		SET outrefheader.Country				=InputRoot.DFDL.Employee.header.Country;
+		
+		DECLARE inref REFERENCE TO InputRoot.DFDL.Employee.record;
+		DECLARE count INTEGER 1;
+		
+		WHILE LASTMOVE(inref) DO
+			
+		SET outrefbody.Employee[count].EmpNo			=inref.EmpNo;
+		SET outrefbody.Employee[count].FirstName		=UPPER(inref.FirstName);
+		SET outrefbody.Employee[count].MidInit			=LOWER(inref.MidInit);
+		SET outrefbody.Employee[count].LastName			=UPPER(inref.LastName);
+		SET outrefbody.Employee[count].WorkDept			=inref.WorkDept;
+		SET outrefbody.Employee[count].PhoneNo			=inref.PhoneNo;
+		SET outrefbody.Employee[count].HireDate			=inref.HireDate;
+		SET outrefbody.Employee[count].Job				=inref.Job;
+		SET outrefbody.Employee[count].EdLevel			=inref.EdLevel;
+		SET outrefbody.Employee[count].Sex				=inref.Sex;
+		SET outrefbody.Employee[count].BirthDate		=inref.BirthDate;
+		SET outrefbody.Employee[count].Salary			=inref.Salary;
+		
+		SET count=count+1;
+		Move inref NEXTSIBLING REPEAT TYPE NAME;
+		
+		
+		END WHILE;
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		SET OutputRoot = InputRoot;
+	END;
+END MODULE;
